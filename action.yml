@@ -1,0 +1,26 @@
+name: 'Publish Chrome Extension'
+description: 'Update and Publish Chrome Extension to Chrome Webstore'
+inputs:
+  path-to-extension-folder:
+    description: 'The folder where the chrome extension is located'
+    default: 'dist'
+    required: true
+  extension-id':
+    description: 'The id of the extension. Can be seen in the webstore url'
+    required: true
+  client-id:
+    description: 'The Google OAuth2 client id allowed to operate the Chrome webstore api'
+    required: true
+  client-secret:
+    description: 'Google OAuth2 client secret'
+    required: true
+  refresh-token:
+    description: 'Google OAuth2 refresh token'
+    required: true
+  publishTarget:
+    description: ''
+    required: false
+    default: 'default'
+runs:
+  using: 'node16'
+  main: 'index.js'
