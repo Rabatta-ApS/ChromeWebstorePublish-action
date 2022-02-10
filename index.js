@@ -1,47 +1,49 @@
 const core = require('@actions/core');
-const github = require('@actions/github');
+const axios = require("axios");
 const child_process = require("child_process");
-import fs from 'fs';
-import path from 'path';
+const fs = require('fs');
+const path = require('path');
 
-try {
-  const clientId = core.getInput('client-id', { required: true });
-  const clientSecret = core.getInput('client-secret', { required: true });
-  const refreshToken = core.getInput('refresh-token', { required: true });
-  const extId = core.getInput('extension-id', {required: true});
-  const pathToExtensionFolder = core.getInput('path-to-extension-folder', { required: true });
-  const publishTarget = core.getInput('publishTarget', { required: false });
+async function run(){
+  try {
+    const clientId = core.getInput('client-id', { required: true });
+    const clientSecret = core.getInput('client-secret', { required: true });
+    const refreshToken = core.getInput('refresh-token', { required: true });
+    const extId = core.getInput('extension-id', {required: true});
+    const pathToExtensionFolder = core.getInput('path-to-extension-folder', { required: true });
+    const publishTarget = core.getInput('publishTarget', { required: false });
+  
+    const accessToken = await reqAccessToken(clientId, clientSecret, refreshToken);
+    let getAccessTokenFailed = accessToken == undefined;
+    if(getAccessTokenFailed){
+      core.setFailed(`Failed to get ACCESS_TOKEN`);
+    }
+  
+    zipExtension(pathToExtensionFolder);
+    core.debug(`Zipped Extension`);
 
-  const accessToken = await reqAccessToken(clientId, clientSecret, refreshToken);
-  core.debug(`Token: ${token}`);
-
-  zipExtionsion(pathToExtensionFolder);
-  await updateExtension(extId, accessToken);
-  await publishAddon(extId, accessToken, publishTarget);
-
-} catch (error) {
-  if (error.response) {
-    // The request was made and the server responded with a status code
-    // that falls out of the range of 2xx
-    core.debug("ERROR but got a response");
-    core.debug(error.response.data);
-    core.debug(error.response.status);
-    core.debug(error.response.headers);
-  } else if (error.request) {
-    // The request was made but no response was received
-    // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-    // http.ClientRequest in node.js
-    core.debug("ERROR and no response recieved");
-    core.debug(error.request);
+    await updateExtension(extId, accessToken);
+    await publishExtension(extId, accessToken, publishTarget);
+  
+  } catch (error) {
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      core.setFailed("Something failed but there was a response");
+      core.setFailed(`Response.data: ${JSON.stringify(error.response.data)}`);
+    } else if (error.request) {
+      // The request was made but no response was received
+      // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+      // http.ClientRequest in node.js
+      core.setFailed("Something failed without giving a response");
+      core.setFailed(`Request: ${JSON.stringify(error.request)}`);
+    }
+    core.setFailed(error.message);
   }
-  core.debug(error.config);
-  core.setFailed(error.message);
 }
 
-function zipExtionsion(path){
-  child_process.execSync(`zip -r Rabatta.zip *`, {
-    cwd: 'dist'
-  });
+function zipExtension(pathToFolder){
+  child_process.execSync(`zip -r Target.zip ${path.resolve(pathToFolder)}`);
 }
 
 async function reqAccessToken(clientId, clientSecret, refreshToken) {
@@ -56,7 +58,7 @@ async function reqAccessToken(clientId, clientSecret, refreshToken) {
 
 async function updateExtension(extId, accessToken) {
   const endpoint = `https://www.googleapis.com/upload/chromewebstore/v1.1/items/${extId}?uploadType=media`;
-  const body = fs.readFileSync(path.resolve('./Rabatta.zip'));
+  const body = fs.readFileSync(path.resolve('./Target.zip'));
   const response = await axios.put(endpoint, body, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -64,7 +66,7 @@ async function updateExtension(extId, accessToken) {
     },
     maxContentLength: Infinity
   });
-  core.debug(`Response: ${JSON.stringify(response.data)}`);
+  core.debug(`Update response: ${JSON.stringify(response.data)}`);
 }
 
 async function publishExtension(extId, accessToken, publishTarget) {
@@ -79,5 +81,7 @@ async function publishExtension(extId, accessToken, publishTarget) {
       }
     }
   );
-  core.debug(`Response: ${JSON.stringify(response.data)}`);
+  core.debug(`Publish response: ${JSON.stringify(response.data)}`);
 }
+
+run();

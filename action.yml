@@ -5,7 +5,7 @@ inputs:
     description: 'The folder where the chrome extension is located'
     default: 'dist'
     required: true
-  extension-id':
+  extension-id:
     description: 'The id of the extension. Can be seen in the webstore url'
     required: true
   client-id:
