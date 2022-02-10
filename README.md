@@ -40,12 +40,13 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Upload and publish extension to Chrome Webstore
-      uses: ./.github/chromeWebstorePublish/
+      uses: Rabatta-ApS/ChromeWebstorePublish-action@1.3
+
       with:
-        path-to-extension-folder: 'dist'
-        extension-id: ${{ secrets.APP_ID }}
-        client-id: ${{ secrets.CLIENT_ID }}
-        client-secret: ${{ secrets.CLIENT_SECRET }}
-        refresh-token: ${{ secrets.REFRESH_TOKEN }}
-        publishTarget: 'default'
+        path-to-extension-folder: <path>
+        extension-id: A<PP_ID>
+        client-id: <CLIENT_ID>
+        client-secret:  <CLIENT_SECRET> 
+        refresh-token: <REFRESH_TOKEN> 
+        publishTarget: <target>
 ```
