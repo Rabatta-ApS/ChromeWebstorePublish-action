@@ -27,3 +27,25 @@ Google OAuth2 refresh token'
 **Not**-required 
 Who is allowed to get the extension
 publishTarget="trustedTesters" or publishTarget="default"
+
+## Example usage
+
+```yaml
+jobs: 
+  Deploy-to-chrome-webstore: 
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Upload and publish extension to Chrome Webstore
+      uses: ./.github/chromeWebstorePublish/
+      with:
+        path-to-extension-folder: 'dist'
+        extension-id: ${{ secrets.APP_ID }}
+        client-id: ${{ secrets.CLIENT_ID }}
+        client-secret: ${{ secrets.CLIENT_SECRET }}
+        refresh-token: ${{ secrets.REFRESH_TOKEN }}
+        publishTarget: 'default'
+```
