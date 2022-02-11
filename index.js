@@ -12,6 +12,7 @@ async function run(){
     const extId = core.getInput('extension-id', {required: true});
     const pathToExtensionFolder = core.getInput('path-to-extension-folder', { required: true });
     const publishTarget = core.getInput('publishTarget', { required: false });
+    const onlyUpload = core.getInput('only-upload', { required: false });
   
     const accessToken = await reqAccessToken(clientId, clientSecret, refreshToken);
     let getAccessTokenFailed = accessToken == undefined;
@@ -23,7 +24,11 @@ async function run(){
     core.debug(`Zipped Extension`);
 
     await updateExtension(extId, accessToken);
-    await publishExtension(extId, accessToken, publishTarget);
+    core.debug(`Only-upload is ${onlyUpload}`);
+
+    if(onlyUpload == false){
+      await publishExtension(extId, accessToken, publishTarget);
+    }
   
   } catch (error) {
     if (error.response) {

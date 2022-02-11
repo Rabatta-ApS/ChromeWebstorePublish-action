@@ -28,6 +28,11 @@ Google OAuth2 refresh token'
 Who is allowed to get the extension
 publishTarget="trustedTesters" or publishTarget="default"
 
+### only-upload:
+**Not**-required 
+Should only upload to Chrome webstore and not publish
+Defaults to false
+
 ## Example usage
 
 ```yaml
@@ -44,7 +49,7 @@ jobs:
 
       with:
         path-to-extension-folder: <path>
-        extension-id: A<PP_ID>
+        extension-id: <APP_ID>
         client-id: <CLIENT_ID>
         client-secret:  <CLIENT_SECRET> 
         refresh-token: <REFRESH_TOKEN> 

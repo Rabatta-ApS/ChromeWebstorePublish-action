@@ -18,9 +18,12 @@ inputs:
     description: 'Google OAuth2 refresh token'
     required: true
   publishTarget:
-    description: ''
+    description: 'Who is allowed to get the extension'
     required: false
     default: 'default'
+  only-upload:
+    description: 'Should only upload to Chrome webstore and not publish'
+    default: false
 runs:
   using: 'node16'
   main: 'index.js'
