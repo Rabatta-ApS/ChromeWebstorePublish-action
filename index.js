@@ -26,7 +26,7 @@ async function run(){
     await updateExtension(extId, accessToken);
     core.debug(`Only-upload is ${onlyUpload}`);
 
-    if(onlyUpload == false){
+    if(onlyUpload !== "true"){
       await publishExtension(extId, accessToken, publishTarget);
     }
   
