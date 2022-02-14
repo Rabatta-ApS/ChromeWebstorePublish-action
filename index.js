@@ -100,7 +100,7 @@ async function getLabels(){
     owner: context.payload.repository.owner.name,
     repo: context.payload.repository.name
   });
-  core.debug(PRS.length);
+  core.debug(JSON.stringify(PRS));
   const prToMaster = PRS.find(pr => pr.merge_commit_sha == context.payload.after);
   core.debug(prToMaster);
   
