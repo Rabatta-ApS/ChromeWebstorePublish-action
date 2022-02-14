@@ -1,4 +1,5 @@
 const core = require('@actions/core');
+const github = require('@actions/github');
 const axios = require("axios");
 const child_process = require("child_process");
 const fs = require('fs');
@@ -13,7 +14,15 @@ async function run(){
     const pathToExtensionFolder = core.getInput('path-to-extension-folder', { required: true });
     const publishTarget = core.getInput('publishTarget', { required: false });
     const onlyUpload = core.getInput('only-upload', { required: false });
+    const version = core.getInput('latestReleaseVersion', {required: true});
   
+    const newVersion = getNewVersionNumber(version);
+
+    process.env.RABATTA_VERSION = newVersion;
+    core.setOutput('tag',`v${newVersion}`);
+
+    buildExtension();
+
     const accessToken = await reqAccessToken(clientId, clientSecret, refreshToken);
     let getAccessTokenFailed = accessToken == undefined;
     if(getAccessTokenFailed){
@@ -47,8 +56,54 @@ async function run(){
   }
 }
 
-function zipExtension(pathToFolder){
-  child_process.execSync(`zip -r Target.zip ${path.resolve(pathToFolder)}`);
+function getNewVersionNumber(version){
+
+  const versionNumbers = version.match(/\d/g);
+
+  for(let i = 0; i < versionNumbers.length; i++){
+    versionNumbers[i] = Number.parseInt(versionNumbers[i]);
+  }
+
+  if(github.context.payload && github.context.payload.pull_request){
+    const labels = github.context.payload.pull_request.labels;
+    if (!labels) {
+      core.info("Not a pull request")
+      core.setOutput('labels', '')
+      core.setOutput('labels-object', null)
+  
+      const err = new Error("Not a pull request");
+      throw err;
+    }
+    if (labels.length == 0) {
+      core.info("No labels found")
+      core.setOutput('labels', '')
+      core.setOutput('labels-object', {})
+      const err = new Error("No labels found");
+      throw err;
+    }
+  
+    for(const label of labels){
+      core.debug(l);
+      if(l == "release:major"){
+        versionNumbers[0]++;
+      } 
+      else if(l == "release:minor"){
+        versionNumbers[1]++;
+  
+      }
+      else if(l == "release:patch"){
+        versionNumbers[2]++;
+  
+      }
+    }
+
+    const versionString = `${versionNumbers[0]}.${versionNumbers[1]}.${versionNumbers[2]}`;
+    return versionString;
+  }
+}
+
+function buildExtension(){
+  child_process.execSync(`npm run build`);
 }
 
 async function reqAccessToken(clientId, clientSecret, refreshToken) {
@@ -61,6 +116,10 @@ async function reqAccessToken(clientId, clientSecret, refreshToken) {
   return response.data.access_token;
 }
 
+function zipExtension(pathToFolder){
+  child_process.execSync(`zip -r Target.zip ${path.resolve(pathToFolder)}`);
+}
+
 async function updateExtension(extId, accessToken) {
   const endpoint = `https://www.googleapis.com/upload/chromewebstore/v1.1/items/${extId}?uploadType=media`;
   const body = fs.readFileSync(path.resolve('./Target.zip'));
@@ -71,6 +130,13 @@ async function updateExtension(extId, accessToken) {
     },
     maxContentLength: Infinity
   });
+
+  if(response.data.error_detail){
+    const err = new Error(response.data.error_detail);
+    err.response = response;
+    throw err;
+  }
+
   core.debug(`Update response: ${JSON.stringify(response.data)}`);
 }
 
