@@ -93,7 +93,7 @@ async function getNewVersionNumber(version){
 
 async function getLabels(){
   const token = core.getInput("github-token", { required: true });
-  const octo = new github.getOctokit(token);
+  const octokit = new github.getOctokit(token);
   const context = github.context;
   const { data: labelsOnIssue } = await octokit.issues.listLabelsOnIssue({
     ...context.repo,
