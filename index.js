@@ -100,8 +100,9 @@ async function getLabels(){
     owner: context.owner,
     repo: context.repo.repo,
   });
-
+  core.debug(PRS.length);
   const prToMaster = PRS.find(pr => pr.merge_commit_sha == context.payload.after);
+  core.debug(prToMaster);
   
 
   const res = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
