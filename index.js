@@ -96,10 +96,7 @@ async function getLabels(){
   const octokit = github.getOctokit(token);
   const context = github.context;
   core.debug(JSON.stringify(context.payload));
-  const { data: labelsOnIssue } = await octokit.issues.listLabelsOnIssue({
-    ...context.repo,
-    issue_number: context.payload.pull_request.number
-  })
+
   const res = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
     owner: context.owner,
     repo: context.repo.repo,
