@@ -31,10 +31,10 @@ async function run(){
     }
   
     zipExtension(pathToExtensionFolder);
-    core.debug(`Zipped Extension`);
+    core.info(`Zipped Extension`);
 
     await updateExtension(extId, accessToken);
-    core.debug(`Only-upload is ${onlyUpload}`);
+    core.info(`Only-upload is ${onlyUpload}`);
 
     if(onlyUpload !== "true"){
       await publishExtension(extId, accessToken, publishTarget);
@@ -68,8 +68,6 @@ async function getNewVersionNumber(version){
   const labels = await getLabels();
 
   if (labels.length == 0) {
-    core.info("No labels found")
-
     const err = new Error("No labels found");
     throw err;
   }
@@ -95,14 +93,11 @@ async function getNewVersionNumber(version){
 async function getLabels(){
   const octokit = new Octokit();
   const context = github.context;
-  core.debug(JSON.stringify(context));
   const PRS = await octokit.request('GET /repos/{owner}/{repo}/pulls?state=all', {
     owner: context.payload.repository.owner.name,
     repo: context.payload.repository.name
   });
-  core.debug(JSON.stringify(PRS));
   const prToMaster = PRS.data.find(pr => pr.merge_commit_sha == context.payload.after);
-  core.debug(prToMaster);
   
   const labels = prToMaster.labels;
   return labels ? labels.map(label => label.name) : [];
@@ -143,7 +138,7 @@ async function updateExtension(extId, accessToken) {
     throw err;
   }
 
-  core.debug(`Update response: ${JSON.stringify(response.data)}`);
+  core.info(`Update response: ${JSON.stringify(response.data)}`);
 }
 
 async function publishExtension(extId, accessToken, publishTarget) {
@@ -158,7 +153,7 @@ async function publishExtension(extId, accessToken, publishTarget) {
       }
     }
   );
-  core.debug(`Publish response: ${JSON.stringify(response.data)}`);
+  core.info(`Publish response: ${JSON.stringify(response.data)}`);
 }
 
 run();
