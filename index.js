@@ -16,7 +16,7 @@ async function run(){
     const onlyUpload = core.getInput('only-upload', { required: false });
     const version = core.getInput('latestReleaseVersion', {required: true});
   
-    const newVersion = getNewVersionNumber(version);
+    const newVersion = await getNewVersionNumber(version);
 
     process.env.RABATTA_VERSION = newVersion;
     core.setOutput('tag',`v${newVersion}`);
@@ -56,7 +56,7 @@ async function run(){
   }
 }
 
-function getNewVersionNumber(version){
+async function getNewVersionNumber(version){
 
   const versionNumbers = version.match(/\d/g);
 
@@ -64,42 +64,44 @@ function getNewVersionNumber(version){
     versionNumbers[i] = Number.parseInt(versionNumbers[i]);
   }
 
-  if(github.context.payload && github.context.payload.pull_request){
-    const labels = github.context.payload.pull_request.labels;
-    if (!labels) {
-      core.info("Not a pull request")
-      core.setOutput('labels', '')
-      core.setOutput('labels-object', null)
-  
-      const err = new Error("Not a pull request");
-      throw err;
-    }
-    if (labels.length == 0) {
-      core.info("No labels found")
-      core.setOutput('labels', '')
-      core.setOutput('labels-object', {})
-      const err = new Error("No labels found");
-      throw err;
-    }
-  
-    for(const label of labels){
-      core.debug(l);
-      if(l == "release:major"){
-        versionNumbers[0]++;
-      } 
-      else if(l == "release:minor"){
-        versionNumbers[1]++;
-  
-      }
-      else if(l == "release:patch"){
-        versionNumbers[2]++;
-  
-      }
-    }
+  const labels = await getLabels();
 
-    const versionString = `${versionNumbers[0]}.${versionNumbers[1]}.${versionNumbers[2]}`;
-    return versionString;
+  if (labels.length == 0) {
+    core.info("No labels found")
+
+    const err = new Error("No labels found");
+    throw err;
   }
+
+  for(const label of labels){
+    core.debug(label);
+    if(label == "release:major"){
+      versionNumbers[0]++;
+    } 
+    else if(label == "release:minor"){
+      versionNumbers[1]++;
+
+    }
+    else if(label == "release:patch"){
+      versionNumbers[2]++;
+    }
+  }
+
+  const versionString = `${versionNumbers[0]}.${versionNumbers[1]}.${versionNumbers[2]}`;
+  return versionString;
+}
+
+async function getLabels(){
+  const token = core.getInput("github-token", { required: true });
+  const client = new github.Github(token)
+  const owner = github.context.repo.owner;
+  const repo = github.context.repo.repo;
+  const commit_sha = github.context.sha;
+
+  const res = await client.repos.listPullRequestsAssociatedWithCommit({owner, repo, commit_sha});
+
+  const pr = res.data.length > 0 && res.data[0];
+  return pr ? pr.labels.map(label => label.name) : [];
 }
 
 function buildExtension(){
