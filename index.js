@@ -104,13 +104,7 @@ async function getLabels(){
   const prToMaster = PRS.data.find(pr => pr.merge_commit_sha == context.payload.after);
   core.debug(prToMaster);
   
-
-  const res = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
-    owner: context.payload.repository.owner.name,
-    repo: context.payload.repository.name,
-    pull_number: prToMaster.number
-  })
-  const labels = res.labels;
+  const labels = prToMaster.labels;
   return labels ? labels.map(label => label.name) : [];
 }
 
