@@ -95,7 +95,7 @@ async function getNewVersionNumber(version){
 async function getLabels(){
   const octokit = new Octokit();
   const context = github.context;
-  core.debug(JSON.stringify(context.payload));
+  core.debug(JSON.stringify(context));
   const PRS = await octokit.request('GET /repos/{owner}/{repo}/pulls', {
     owner: context.owner,
     repo: context.repo.repo,
