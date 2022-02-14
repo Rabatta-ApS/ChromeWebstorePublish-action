@@ -93,15 +93,14 @@ async function getNewVersionNumber(version){
 
 async function getLabels(){
   const token = core.getInput("github-token", { required: true });
-  const client = new github.Github(token)
-  const owner = github.context.repo.owner;
-  const repo = github.context.repo.repo;
-  const commit_sha = github.context.sha;
+  const octo = new github.getOctokit(token);
+  const context = github.context;
+  const { data: labelsOnIssue } = await octokit.issues.listLabelsOnIssue({
+    ...context.repo,
+    issue_number: context.payload.pull_request.number
+  })
 
-  const res = await client.repos.listPullRequestsAssociatedWithCommit({owner, repo, commit_sha});
-
-  const pr = res.data.length > 0 && res.data[0];
-  return pr ? pr.labels.map(label => label.name) : [];
+  return labelsOnIssue ? labelsOnIssue.labels.map(label => label.name) : [];
 }
 
 function buildExtension(){
