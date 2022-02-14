@@ -27,9 +27,6 @@ inputs:
   latestReleaseVersion:
     description: 'Latest github release version (needs to get bumped)'
     required: true
-  github-token:  # id of input
-    description: 'The repository token, i.e. secrets.GITHUB_TOKEN'
-    required: true
 runs:
   using: 'node16'
   main: 'index.js'

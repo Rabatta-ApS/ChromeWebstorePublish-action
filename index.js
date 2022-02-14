@@ -1,5 +1,6 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
+const { Octokit } = require("@octokit/action");
 const axios = require("axios");
 const child_process = require("child_process");
 const fs = require('fs');
@@ -92,8 +93,7 @@ async function getNewVersionNumber(version){
 }
 
 async function getLabels(){
-  const token = core.getInput("github-token", { required: true });
-  const octokit = github.getOctokit(token);
+  const octokit = new Octokit();
   const context = github.context;
   core.debug(JSON.stringify(context.payload));
   const PRS = await octokit.request('GET /repos/{owner}/{repo}/pulls', {
