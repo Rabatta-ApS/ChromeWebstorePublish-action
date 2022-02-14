@@ -95,12 +95,18 @@ async function getLabels(){
   const token = core.getInput("github-token", { required: true });
   const octokit = github.getOctokit(token);
   const context = github.context;
+  core.debug(JSON.stringify(context.payload));
   const { data: labelsOnIssue } = await octokit.issues.listLabelsOnIssue({
     ...context.repo,
     issue_number: context.payload.pull_request.number
   })
-
-  return labelsOnIssue ? labelsOnIssue.labels.map(label => label.name) : [];
+  const res = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+    owner: context.owner,
+    repo: context.repo.repo,
+    pull_number: context.payload.pull_request.number
+  })
+  const labels = res.labels;
+  return labels ? labels.map(label => label.name) : [];
 }
 
 function buildExtension(){
