@@ -96,7 +96,7 @@ async function getLabels(){
   const octokit = new Octokit();
   const context = github.context;
   core.debug(JSON.stringify(context));
-  const PRS = await octokit.request('GET /repos/{owner}/{repo}/pulls', {
+  const PRS = await octokit.request('GET /repos/{owner}/{repo}/pulls?state=all', {
     owner: context.payload.repository.owner.name,
     repo: context.payload.repository.name
   });
@@ -105,7 +105,7 @@ async function getLabels(){
   core.debug(prToMaster);
   
 
-  const res = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}?state=all', {
+  const res = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
     owner: context.payload.repository.owner.name,
     repo: context.payload.repository.name,
     pull_number: prToMaster.number
