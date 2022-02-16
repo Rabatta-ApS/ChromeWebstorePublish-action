@@ -74,13 +74,14 @@ async function updateExtension(extId, accessToken) {
     maxContentLength: Infinity
   });
 
-  if(response.data.error_detail){
-    const err = new Error(response.data.error_detail);
+  core.info(`Update response: ${JSON.stringify(response.data)}`);
+
+  if(response.data.itemError && response.data.itemError.length > 0 ){
+    const err = new Error("Update error");
     err.response = response;
     throw err;
   }
 
-  core.info(`Update response: ${JSON.stringify(response.data)}`);
 }
 
 async function publishExtension(extId, accessToken, publishTarget) {
