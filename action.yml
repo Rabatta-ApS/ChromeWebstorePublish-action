@@ -24,9 +24,6 @@ inputs:
   only-upload:
     description: 'Should only upload to Chrome webstore and not publish'
     default: false
-  latestReleaseVersion:
-    description: 'Latest github release version (needs to get bumped)'
-    required: true
 runs:
   using: 'node16'
   main: 'index.js'
