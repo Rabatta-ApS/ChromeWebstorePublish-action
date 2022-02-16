@@ -15,14 +15,6 @@ async function run(){
     const pathToExtensionFolder = core.getInput('path-to-extension-folder', { required: true });
     const publishTarget = core.getInput('publishTarget', { required: false });
     const onlyUpload = core.getInput('only-upload', { required: false });
-    const version = core.getInput('latestReleaseVersion', {required: true});
-  
-    const newVersion = await getNewVersionNumber(version);
-
-    process.env.RABATTA_VERSION = newVersion;
-    core.setOutput('tag',`v${newVersion}`);
-
-    buildExtension();
 
     const accessToken = await reqAccessToken(clientId, clientSecret, refreshToken);
     let getAccessTokenFailed = accessToken == undefined;
@@ -55,56 +47,6 @@ async function run(){
     }
     core.setFailed(error.message);
   }
-}
-
-async function getNewVersionNumber(version){
-
-  const versionNumbers = version.match(/\d/g);
-
-  for(let i = 0; i < versionNumbers.length; i++){
-    versionNumbers[i] = Number.parseInt(versionNumbers[i]);
-  }
-
-  const labels = await getLabels();
-
-  if (labels.length == 0) {
-    const err = new Error("No labels found");
-    throw err;
-  }
-
-  for(const label of labels){
-    core.debug(label);
-    if(label == "release:major"){
-      versionNumbers[0]++;
-    } 
-    else if(label == "release:minor"){
-      versionNumbers[1]++;
-
-    }
-    else if(label == "release:patch"){
-      versionNumbers[2]++;
-    }
-  }
-
-  const versionString = `${versionNumbers[0]}.${versionNumbers[1]}.${versionNumbers[2]}`;
-  return versionString;
-}
-
-async function getLabels(){
-  const octokit = new Octokit();
-  const context = github.context;
-  const PRS = await octokit.request('GET /repos/{owner}/{repo}/pulls?state=all', {
-    owner: context.payload.repository.owner.name,
-    repo: context.payload.repository.name
-  });
-  const prToMaster = PRS.data.find(pr => pr.merge_commit_sha == context.payload.after);
-  
-  const labels = prToMaster.labels;
-  return labels ? labels.map(label => label.name) : [];
-}
-
-function buildExtension(){
-  child_process.execSync(`npm run build`);
 }
 
 async function reqAccessToken(clientId, clientSecret, refreshToken) {
